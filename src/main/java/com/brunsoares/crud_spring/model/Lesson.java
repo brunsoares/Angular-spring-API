@@ -31,6 +31,7 @@ public class Lesson {
     @Column(length = 20, nullable = false)
     private String youtubeUrl;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -39,6 +40,12 @@ public class Lesson {
     public Lesson(String name, String youtubeUrl) {
         this.name = name;
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public Lesson(String name, String youtubeUrl, Course course) {
+        this.name = name;
+        this.youtubeUrl = youtubeUrl;
+        this.course = course;
     }
 
     public Lesson() {

@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 import com.brunsoares.crud_spring.dto.CourseDTO;
 import com.brunsoares.crud_spring.dto.LessonDTO;
+import com.brunsoares.crud_spring.enums.Category;
 import com.brunsoares.crud_spring.model.Course;
-import com.brunsoares.crud_spring.model.Lesson;
 
 @Component
 public class CourseMapper {
@@ -20,11 +20,15 @@ public class CourseMapper {
 
     public CourseDTO toDTO(Course course) {
         List<LessonDTO> lessons = course.getLessons().stream().map(lessonMapper::toDTO).toList();
-        return new CourseDTO(course.getId(), course.getName(), course.getCategory(), lessons);
+        return new CourseDTO(course.getId(), course.getName(), course.getCategory().getDescription(), lessons);
     }
 
     public Course toEntity(CourseDTO courseDTO) {
-        List<Lesson> lessons = courseDTO.lessons().stream().map(lessonMapper::toEntity).toList();
-        return new Course(courseDTO.name(), courseDTO.category(), lessons);
+        Course course = new Course();
+        course.setName(courseDTO.name());
+        course.setCategory(Category.fromDescription(courseDTO.category()));
+        course.setLessons(
+                courseDTO.lessons().stream().map(lessonDTO -> lessonMapper.toEntity(lessonDTO, course)).toList());
+        return course;
     }
 }

@@ -1,5 +1,7 @@
 package com.brunsoares.crud_spring.enums;
 
+import java.util.Arrays;
+
 public enum Category {
     BACKEND("Backend"),
     FRONTEND("Frontend"),
@@ -13,6 +15,13 @@ public enum Category {
 
     public String getDescription() {
         return description;
+    }
+
+    public static Category fromDescription(String description) {
+        return Arrays.stream(values())
+                .filter(category -> category.description.equalsIgnoreCase(description))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

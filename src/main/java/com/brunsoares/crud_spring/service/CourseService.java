@@ -2,9 +2,12 @@ package com.brunsoares.crud_spring.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.brunsoares.crud_spring.dto.CourseDTO;
+import com.brunsoares.crud_spring.dto.CoursePageDTO;
 import com.brunsoares.crud_spring.exception.NotFoundException;
 import com.brunsoares.crud_spring.mapper.CourseMapper;
 import com.brunsoares.crud_spring.model.Course;
@@ -20,8 +23,10 @@ public class CourseService {
         this.courseMapper = courseMapper;
     }
 
-    public List<CourseDTO> getAllCourses() {
-        return courseRepository.findAll().stream().map(courseMapper::toDTO).toList();
+    public CoursePageDTO getAllCourses(int page, int size) {
+        Page<Course> pageCourse = courseRepository.findAll(PageRequest.of(page, size));
+        List<CourseDTO> courses = pageCourse.getContent().stream().map(courseMapper::toDTO).toList();
+        return new CoursePageDTO(courses, pageCourse.getTotalElements(), pageCourse.getTotalPages());
     }
 
     public CourseDTO getByIdCourse(Long id) {
@@ -34,8 +39,14 @@ public class CourseService {
 
     public CourseDTO updateCourse(Long id, CourseDTO course) {
         return courseRepository.findById(id).map(existingCourse -> {
-            existingCourse.setName(course.name());
-            existingCourse.setCategory(course.category());
+            Course courseToUpdate = courseMapper.toEntity(course);
+            existingCourse.setName(courseToUpdate.getName());
+            existingCourse.setCategory(courseToUpdate.getCategory());
+            existingCourse.getLessons().clear();
+            courseToUpdate.getLessons().forEach(lesson -> {
+                lesson.setCourse(existingCourse);
+                existingCourse.getLessons().add(lesson);
+            });
             Course updatedCourse = courseRepository.save(existingCourse);
             return courseMapper.toDTO(updatedCourse);
         }).orElseThrow(() -> new NotFoundException(id));
